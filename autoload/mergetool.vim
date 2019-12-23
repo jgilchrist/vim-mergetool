@@ -52,7 +52,24 @@ function! mergetool#start() "{{{
 
   call mergetool#prefer_revision(g:mergetool_prefer_revision)
   call mergetool#set_layout(g:mergetool_layout)
+  call mergetool#bind_commands()
 endfunction "}}}
+
+function! mergetool#bind_commands()
+  command! -nargs=0 MergetoolStop call mergetool#stop()
+  command! -nargs=1 MergetoolSetLayout call mergetool#set_layout(<f-args>)
+  command! -nargs=1 MergetoolToggleLayout call mergetool#toggle_layout(<f-args>)
+  command! -nargs=0 MergetoolPreferLocal call mergetool#prefer_revision('local')
+  command! -nargs=0 MergetoolPreferRemote call mergetool#prefer_revision('remote')
+endf
+
+function! mergetool#unbind_commands()
+  delcommand MergetoolStop
+  delcommand MergetoolSetLayout
+  delcommand MergetoolToggleLayout
+  delcommand MergetoolPreferLocal
+  delcommand MergetoolPreferRemote
+endf
 
 " Stop mergetool effect depends on:
 " - when run as 'git mergetool'
@@ -104,6 +121,7 @@ function! mergetool#stop() " {{{
     endif
 
     let g:mergetool_in_merge_mode = 0
+    call mergetool#unbind_commands()
     tabclose
   endif
 endfunction " }}}
