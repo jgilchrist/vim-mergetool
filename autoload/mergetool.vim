@@ -223,6 +223,57 @@ endfunction " }}}
 
 " }}}
 
+" Diff exchange {{{ 
+
+" Do either diffget or diffput, depending on given direction
+" and whether the window has adjacent window in a given direction
+" h|<left> + window on right = diffget from right win
+" h|<left> + no window on right = diffput to left win
+" l|<right> + window on left = diffget from left win
+" l|<right> + no window on left = diffput to right win
+" Same logic applies for vertical directions: 'j' and 'k'
+
+let s:directions = {
+      \ 'h': 'l',
+      \ 'l': 'h',
+      \ 'j': 'k',
+      \ 'k': 'j' }
+
+function mergetool#DiffExchange(dir)
+  let oppdir = s:directions[a:dir]
+
+  let winoppdir = s:FindWindowOnDir(oppdir)
+  if (winoppdir != -1)
+    execute "diffget " . winbufnr(winoppdir)
+  else
+    let windir = s:FindWindowOnDir(a:dir)
+    if (windir != -1)
+      execute "diffput " . winbufnr(windir)
+    else
+      echohl WarningMsg
+      echo 'Cannot exchange diff. Found only single window'
+      echohl None
+    endif
+  endif
+endfunction
+
+" Finds window in given direction and returns it win number
+" If no window found, returns -1
+function s:FindWindowOnDir(dir)
+  let oldwin = winnr()
+
+  execute "noautocmd wincmd " . a:dir
+  let curwin = winnr()
+  if (oldwin != curwin)
+    noautocmd wincmd p
+    return curwin
+  else
+    return -1
+  endif
+endfunction
+
+" }}}
+
 " Private functions{{{
 
 let s:markers = {
